@@ -2,13 +2,13 @@ package me.fiveship.hideandseek.localization;
 
 public class Localization {
 
-    public Localization(Lang l) {
+    public static void set(Lang l) {
         switch (l) {
             case ENGLISH -> {
-
+                
             }
             case HUNGARIAN -> {
-
+                //TODO
             }
         }
     }

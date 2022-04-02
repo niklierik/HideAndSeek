@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.fiveship.hideandseek.cfg.Config;
 import me.fiveship.hideandseek.cmd.MainCmd;
 import me.fiveship.hideandseek.game.Map;
+import me.fiveship.hideandseek.localization.Localization;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -28,6 +29,7 @@ public final class HNS extends JavaPlugin {
         mapsFolder().mkdirs();
         cfg = Config.load();
         cfg.save();
+        Localization.set(cfg.lang);
         loadMaps();
     }
 
