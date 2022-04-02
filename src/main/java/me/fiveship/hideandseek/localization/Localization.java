@@ -6,15 +6,17 @@ import java.util.List;
 public class Localization {
 
     public static List<String> helpCmd = new ArrayList<>();
-    public static String invalidCmd;
+    public static String invalidCmd = "";
 
     public static void set(Lang l) {
         switch (l) {
             case ENGLISH -> {
+                invalidCmd = "&cCommand was not found. Try &6/{0} help&c.";
                 helpCmd.add(c("&7----&b<&eCommands&b>&7----"));
                 helpCmd.add(c("  &f/{0} &ehelp &7&l- &bShows the list of commands."));
             }
             case HUNGARIAN -> {
+                invalidCmd = "&cA parancs nem található. Próbáld meg a &6/{0} help&c parancsot.";
                 helpCmd.add(c("&7----&b<&eParancsok&b>&7----"));
                 helpCmd.add(c("  &f/{0} &ehelp &7&l- &bKilistázza a parancsokat."));
             }
