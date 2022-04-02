@@ -2,8 +2,6 @@ package me.fiveship.hideandseek.game;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Optional;
-
 public class Settings {
 
     @JsonProperty("CanSelectSpawn")
@@ -16,6 +14,11 @@ public class Settings {
     public Integer hideTime = 60;
     @JsonProperty("SeekTime")
     public Integer seekTime = 300;
+    @JsonProperty("TurningToBlockTime")
+    public Integer turningToBlockTime = 3;
+    @JsonProperty("MoveAsPlayer")
+    public Boolean moveAsPlayer = false;
+
 
 
     public Settings() {
@@ -26,7 +29,7 @@ public class Settings {
         for (var field : getClass().getFields()) {
             try {
                 field.set(s, field.get(this));
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
     }
