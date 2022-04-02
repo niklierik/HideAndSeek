@@ -28,4 +28,9 @@ public class Config {
     @JsonProperty("Global")
     public Settings global = new Settings();
 
+    @JsonProperty("SaveMapsOnStop")
+    public boolean saveMapsOnStop = true;
+    @JsonProperty("SaveCfgOnStop")
+    public boolean saveCfgOnStop = false;
+
 }

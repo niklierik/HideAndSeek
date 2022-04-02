@@ -38,8 +38,6 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <finalName>${project.artifactId}-${project.version}-built</finalName>
-                            <outputDirectory>X:\MC\BolondBujas\plugins</outputDirectory>
                         </configuration>
                     </execution>
 

@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Objects;
 
 public final class HNS extends JavaPlugin {
 
@@ -15,12 +16,34 @@ public final class HNS extends JavaPlugin {
     public static Config cfg;
     public static final HashSet<Map> maps = new HashSet<>();
 
+    public static File mapsFolder() {
+        return new File(pluginFolder, "Maps");
+    }
+
     @Override
     public void onEnable() {
         pluginFolder = getDataFolder();
         pluginFolder.mkdirs();
+        mapsFolder().mkdirs();
         cfg = Config.load();
         cfg.save();
+        loadMaps();
+    }
+
+    private void loadMaps() {
+        for (File f : Objects.requireNonNull(mapsFolder().listFiles())) {
+            try {
+                var m = JSON.readValue(f, Map.class);
+                maps.add(m);
+            } catch (Exception ignored) {
+            }
+        }
+        for (Map m : maps) {
+            try {
+                m.init();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     @Override
@@ -33,6 +56,9 @@ public final class HNS extends JavaPlugin {
                 }
             }
         } catch (Exception ignored) {
+        }
+        if (cfg.saveCfgOnStop) {
+            cfg.save();
         }
     }
 }

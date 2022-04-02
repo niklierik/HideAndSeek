@@ -1,5 +1,6 @@
 package me.fiveship.hideandseek.game;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Settings {
@@ -20,7 +21,7 @@ public class Settings {
     public Boolean moveAsPlayer = false;
 
 
-
+    @JsonCreator
     public Settings() {
 
     }
