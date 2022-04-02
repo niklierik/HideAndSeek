@@ -6,6 +6,7 @@ import me.fiveship.hideandseek.cmd.EditorMode;
 import me.fiveship.hideandseek.localization.Localization;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,8 +24,10 @@ public class MainListener implements Listener {
         Location from = event.getFrom();
         Location to = event.getTo();
         double d = from.distanceSquared(to);
+        var player = event.getPlayer();
         if (d >= 0.001) {
             // moved more than a little
+            player.setGameMode(GameMode.ADVENTURE);
             HNS.timer.put(event.getPlayer(), 0.0);
         }
     }

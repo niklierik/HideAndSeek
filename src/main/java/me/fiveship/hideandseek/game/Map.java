@@ -4,10 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class Map implements Serializable {
@@ -22,6 +25,10 @@ public class Map implements Serializable {
 
     @JsonIgnore
     public HashSet<Player> players = new HashSet<>();
+    @JsonIgnore
+    public HashMap<Player, Material> materials = new HashMap<>();
+    @JsonIgnore
+    public HashMap<Player, Integer> datas = new HashMap<>();
 
     @JsonCreator
     public Map(@JsonProperty("ID") String id) {
@@ -34,11 +41,15 @@ public class Map implements Serializable {
 
     public void onTick(double delta) {
         for (var player : players) {
+            player.setSaturation(10.0f);
             double d = HNS.timer.getOrDefault(player, 0.0);
             d += delta;
-            if (d >= override.turningToBlockTime) {
+            var block = HNS.toCenter(player.getLocation()).getBlock();
+            if (d >= override.turningToBlockTime && block.getType() == Material.AIR) {
                 d = override.turningToBlockTime;
                 player.teleport(HNS.toCenter(player.getLocation()));
+                HNS.disguise(player, null, 0);
+                player.setGameMode(GameMode.SPECTATOR);
             }
             HNS.timer.put(player, d);
 
