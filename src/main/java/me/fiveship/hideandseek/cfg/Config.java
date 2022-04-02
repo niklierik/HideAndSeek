@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.game.Settings;
 import me.fiveship.hideandseek.localization.Lang;
+import org.bukkit.Location;
 
 import java.io.File;
 
@@ -18,6 +19,8 @@ public class Config {
     public boolean saveCfgOnStop = false;
     @JsonProperty("Lang")
     public Lang lang = Lang.ENGLISH;
+    @JsonProperty("Lobby")
+    public Location lobby;
 
     public static Config load() {
         try {

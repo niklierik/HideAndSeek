@@ -1,0 +1,1 @@
+move /y "X:\Workspace\Java\Spigot Plugins\HideAndSeek\target\hideandseek-1.0.jar" "X:\MC\BolondBujas\plugins"

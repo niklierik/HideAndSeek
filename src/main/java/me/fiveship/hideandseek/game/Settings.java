@@ -27,6 +27,8 @@ public class Settings {
     public Integer seekerMiningFatigue = 0;
     @JsonProperty("MiningFatigueForHider")
     public Integer hiderMiningFatigue = 0;
+    @JsonProperty("DeadCanSeek")
+    public Boolean deadCanSeek = false;
 
 
     @JsonCreator
@@ -47,16 +49,15 @@ public class Settings {
         return new Settings(this);
     }
 
-    public Settings keepNotNull(Settings global) {
+    public void keepNotNull(Settings global) {
         for (var field : getClass().getFields()) {
             try {
                 var current = field.get(this);
                 if (current == null) {
                     field.set(this, field.get(global));
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
-        return this;
     }
 }

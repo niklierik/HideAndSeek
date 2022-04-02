@@ -6,19 +6,62 @@ import java.util.List;
 public class Localization {
 
     public static List<String> helpCmd = new ArrayList<>();
+    public static List<String> helpCmdIfOp = new ArrayList<>();
+    public static List<String> helpEditor = new ArrayList<>();
     public static String invalidCmd = "";
+    public static String entersEditor;
+    public static String invalidEditorCmd;
 
     public static void set(Lang l) {
-        switch (l) {
-            case ENGLISH -> {
-                invalidCmd = "&cCommand was not found. Try &6/{0} help&c.";
+        set(l.toString());
+    }
+
+    public static void set(String l) {
+        switch (l.toUpperCase()) {
+            case "ENGLISH" -> {
                 helpCmd.add(c("&7----&b<&eCommands&b>&7----"));
-                helpCmd.add(c("  &f/{0} &ehelp &7&l- &bShows the list of commands."));
+                helpCmd.add(c("  &f/{0} &ehelp &7&l- &bShows the list of commands"));
+                helpCmd.add(" ");
+                /////
+                helpCmdIfOp.addAll(helpCmd);
+                helpCmdIfOp.add(c("  &f/{0} &eeditor &7&l- &bEditor mode"));
+                helpCmdIfOp.add(" ");
+                /////
+                helpEditor.add(c("&7----&b<&eCommands&b>&7----"));
+                helpEditor.add(c("  &e#{command} &7&l- &bActivates this command even if you send it in chat-mode"));
+                helpEditor.add(c("  &ehelp &7&l- &bList of commands"));
+                helpEditor.add(c("  &eexit &7&l- &bExit the editor"));
+                helpEditor.add(c("  &echat &7&l- &bSends your message to the chat"));
+                helpEditor.add(c("  &echat-on &7&l- &bSends your next messages to the chat"));
+                helpEditor.add(c("  &e[#]chat-off &7&l- &bDisables chat-mode and "));
+                helpEditor.add(c(" "));
+                /////
+                invalidCmd = "&cCommand was not found. Try &6/{0} help&c.";
+                entersEditor = c("You opened the &bEditor&f! Just write to the chat to enter your commands. Try &6help &fto list these commands.");
+                invalidEditorCmd = c("This command does not exist. Try &6help &ffor help or &6chat &fto write to chat or &cexit &fto exit the editor.");
+
             }
-            case HUNGARIAN -> {
-                invalidCmd = "&cA parancs nem található. Próbáld meg a &6/{0} help&c parancsot.";
+            case "HUNGARIAN" -> {
                 helpCmd.add(c("&7----&b<&eParancsok&b>&7----"));
-                helpCmd.add(c("  &f/{0} &ehelp &7&l- &bKilistázza a parancsokat."));
+                helpCmd.add(c("  &f/{0} &ehelp &7&l- &bKilistázza a parancsokat"));
+                helpCmd.add(" ");
+                /////
+                helpCmdIfOp.addAll(helpCmd);
+                helpCmdIfOp.add(c("  &f/{0} &eeditor &7&l- &bEditor mód"));
+                helpCmdIfOp.add(" ");
+                /////
+                helpEditor.add(c("&7----&b<&eParancsok&b>&7----"));
+                helpEditor.add(c("  &e#{command} &7&l- &bBeaktiválja a parancsot attól függetlenül, hogy chat mode-ba vagy-e vagy sem"));
+                helpEditor.add(c("  &ehelp &7&l- &bParancsok listája"));
+                helpEditor.add(c("  &eexit &7&l- &bKilépsz a szerkesztőből"));
+                helpEditor.add(c("  &echat &7&l- &bParancs értelmezése helyett a chat-re küldöd amit írsz "));
+                helpEditor.add(c("  &echat-on &7&l- &bChat-mode-ba váltasz és a következő üzeneteket nem parancsként lesz értelmezve"));
+                helpEditor.add(c("  &e[#]chat-off &7&l- &bKikapcsolja a chat-mode-ot"));
+                helpEditor.add(c(" "));
+                /////
+                invalidCmd = c("&cA parancs nem található. Próbáld meg a &6/{0} help&c parancsot.");
+                entersEditor = c("Beléptél az &bEditor&f-ba! Csak a chat-be kell beírnod normális szövegként a parancsokat. Próbáld ki a &6help &fparancsot, hogy ezeket megnézd.");
+                invalidEditorCmd = c("Ez a parancs nem létezik. Próbáld meg a &6help &fparancsot segítségért, &6chat &fparancsot, hogy a chat-re írj vagy az &cexit &fparancsot, hogy kilépj a szerkesztőből.");
             }
         }
     }

@@ -1,22 +1,50 @@
 package me.fiveship.hideandseek;
 
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import me.fiveship.hideandseek.cfg.Config;
 import me.fiveship.hideandseek.cmd.MainCmd;
+import me.fiveship.hideandseek.events.MainListener;
 import me.fiveship.hideandseek.game.Map;
 import me.fiveship.hideandseek.localization.Localization;
+import me.libraryaddict.disguise.disguisetypes.DisguiseType;
+import me.libraryaddict.disguise.disguisetypes.MiscDisguise;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.UUID;
 
 public final class HNS extends JavaPlugin {
 
     public static final ObjectMapper JSON = new ObjectMapper();
     public static File pluginFolder;
     public static Config cfg;
-    public static final HashSet<Map> maps = new HashSet<>();
+    public static final HashMap<String, Map> maps = new HashMap<>();
+    public static final HashMap<Player, Double> timer = new HashMap<>();
+    public static final HashMap<Player, MiscDisguise> disguises = new HashMap<>();
+    public static double deltaTime;
+    private static long currentTime;
+    private static long lastTime;
+    public static final HashSet<UUID> players = new HashSet<>();
+    public static HashSet<Player> inEditor = new HashSet<>();
 
     public static File mapsFolder() {
         return new File(pluginFolder, "Maps");
@@ -24,6 +52,7 @@ public final class HNS extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        initJSON();
         pluginFolder = getDataFolder();
         pluginFolder.mkdirs();
         mapsFolder().mkdirs();
@@ -31,17 +60,58 @@ public final class HNS extends JavaPlugin {
         cfg.save();
         Localization.set(cfg.lang);
         loadMaps();
+        registerCommands();
+        registerListeners();
+        lastTime = currentTime = System.nanoTime();
+    }
+
+    private void initJSON() {
+        JSON.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        SimpleModule m = new SimpleModule("Hide And Seek JSON Module");
+        m.addDeserializer(Location.class, new JsonDeserializer<>() {
+            @Override
+            public Location deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+                JsonNode node = p.getCodec().readTree(p);
+                return new Location(Bukkit.getWorld(node.get("World").asText()), node.get("X").asDouble(), node.get("Y").asDouble(), node.get("Z").asDouble(), (float) node.get("Yaw").asDouble(), (float) node.get("Pitch").asDouble());
+            }
+        });
+        m.addSerializer(Location.class, new JsonSerializer<>() {
+            @Override
+            public void serialize(Location value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                gen.writeStartObject();
+                gen.writeStringField("World", value.getWorld().getName());
+                gen.writeNumberField("X", value.getX());
+                gen.writeNumberField("Y", value.getY());
+                gen.writeNumberField("Z", value.getZ());
+                gen.writeNumberField("Yaw", value.getYaw());
+                gen.writeNumberField("Pitch", value.getPitch());
+                gen.writeEndObject();
+            }
+        });
+        m.addDeserializer(Entity.class, new JsonDeserializer<>() {
+            @Override
+            public Entity deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+                return Bukkit.getEntity(UUID.fromString(p.readValueAs(String.class)));
+            }
+        });
+        m.addSerializer(Entity.class, new JsonSerializer<>() {
+            @Override
+            public void serialize(Entity value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                gen.writeString(value.getUniqueId().toString());
+            }
+        });
+        JSON.registerModule(m);
     }
 
     private void loadMaps() {
         for (File f : Objects.requireNonNull(mapsFolder().listFiles())) {
             try {
                 var m = JSON.readValue(f, Map.class);
-                maps.add(m);
+                maps.put(m.id, m);
             } catch (Exception ignored) {
             }
         }
-        for (Map m : maps) {
+        for (Map m : maps.values()) {
             try {
                 m.init();
             } catch (Exception ignored) {
@@ -53,10 +123,54 @@ public final class HNS extends JavaPlugin {
         Objects.requireNonNull(getCommand("hns")).setExecutor(new MainCmd());
     }
 
+    private void registerListeners() {
+        Bukkit.getPluginManager().registerEvents(new MainListener(), this);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            currentTime = System.nanoTime();
+            deltaTime = (currentTime - lastTime) / 1_000_000_000.0;
+            onTick(deltaTime);
+            lastTime = currentTime;
+        }, 1L, 1L);
+    }
+
+    private void onTick(double deltaTime) {
+        for (Map m : maps.values()) {
+            m.onTick(deltaTime);
+        }
+    }
+
+    public static void disguise(Player player, Material m, int v) {
+        var old = disguises.getOrDefault(player, null);
+        if (old != null) {
+            old.stopDisguise();
+        }
+        if (m != null) {
+            MiscDisguise d = new MiscDisguise(DisguiseType.FALLING_BLOCK, m, v);
+            d.setEntity(player);
+            d.startDisguise();
+            disguises.put(player, d);
+        } else {
+            disguises.put(player, null);
+        }
+    }
+
+    public static Location toCenter(Location l) {
+        double x = l.getX() - 0.5;
+        double y = l.getY();
+        double z = l.getZ() - 0.5;
+        x = Math.round(x) + 0.5;
+        y = Math.round(y);
+        z = Math.round(z) + 0.5;
+        var l2 = new Location(l.getWorld(), x, y, z);
+        l2.setPitch(l.getPitch());
+        l2.setYaw(l.getYaw());
+        return l2;
+    }
+
     @Override
     public void onDisable() {
         try {
-            for (var map : maps) {
+            for (var map : maps.values()) {
                 try {
                     map.onDestroy();
                 } catch (Exception ignored) {
@@ -66,6 +180,11 @@ public final class HNS extends JavaPlugin {
         }
         if (cfg.saveCfgOnStop) {
             cfg.save();
+        }
+        try {
+            JSON.writeValue(new File(pluginFolder, "players.json"), players);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
