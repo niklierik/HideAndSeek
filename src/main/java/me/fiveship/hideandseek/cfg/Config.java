@@ -3,6 +3,7 @@ package me.fiveship.hideandseek.cfg;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.game.Settings;
+import me.fiveship.hideandseek.localization.Lang;
 
 import java.io.File;
 
@@ -15,6 +16,8 @@ public class Config {
     public boolean saveMapsOnStop = true;
     @JsonProperty("SaveCfgOnStop")
     public boolean saveCfgOnStop = false;
+    @JsonProperty("Lang")
+    public Lang lang = Lang.ENGLISH;
 
     public static Config load() {
         try {
