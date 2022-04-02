@@ -50,6 +50,8 @@ public class Map implements Serializable {
                 player.teleport(HNS.toCenter(player.getLocation()));
                 HNS.disguise(player, null, 0);
                 player.setGameMode(GameMode.SPECTATOR);
+                block.setType(block.getType(), true);
+                HNS.blocks.put(player, block);
             }
             HNS.timer.put(player, d);
 

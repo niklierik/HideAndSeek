@@ -21,6 +21,7 @@ import me.libraryaddict.disguise.disguisetypes.MiscDisguise;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,6 +41,7 @@ public final class HNS extends JavaPlugin {
     public static final HashMap<String, Map> maps = new HashMap<>();
     public static final HashMap<Player, Double> timer = new HashMap<>();
     public static final HashMap<Player, MiscDisguise> disguises = new HashMap<>();
+    public static final HashMap<Player, Block> blocks = new HashMap<>();
     public static double deltaTime;
     private static long currentTime;
     private static long lastTime;
@@ -159,7 +161,6 @@ public final class HNS extends JavaPlugin {
         double y = l.getY();
         double z = l.getZ() - 0.5;
         x = Math.round(x) + 0.5;
-        y = Math.round(y);
         z = Math.round(z) + 0.5;
         var l2 = new Location(l.getWorld(), x, y, z);
         l2.setPitch(l.getPitch());

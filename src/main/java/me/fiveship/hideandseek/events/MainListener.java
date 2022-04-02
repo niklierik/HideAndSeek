@@ -3,6 +3,7 @@ package me.fiveship.hideandseek.events;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.cmd.EditorMode;
+import me.fiveship.hideandseek.game.Map;
 import me.fiveship.hideandseek.localization.Localization;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -11,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.HashMap;
@@ -25,11 +27,25 @@ public class MainListener implements Listener {
         Location to = event.getTo();
         double d = from.distanceSquared(to);
         var player = event.getPlayer();
-        if (d >= 0.001) {
-            // moved more than a little
-            player.setGameMode(GameMode.ADVENTURE);
-            HNS.timer.put(event.getPlayer(), 0.0);
+        if (Map.playerIn(player) != null) {
+            if (d >= 0.001) {
+                // moved more than a little
+                moved(player);
+            }
         }
+    }
+
+    @EventHandler
+    public void onBlockHit(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (Map.playerIn(player) != null) {
+            moved(player);
+        }
+    }
+
+    private void moved(Player player) {
+        player.setGameMode(GameMode.ADVENTURE);
+        HNS.timer.put(player, 0.0);
     }
 
     @EventHandler
