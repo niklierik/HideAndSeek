@@ -2,6 +2,7 @@ package me.fiveship.hideandseek;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.fiveship.hideandseek.cfg.Config;
+import me.fiveship.hideandseek.cmd.MainCmd;
 import me.fiveship.hideandseek.game.Map;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -44,6 +45,10 @@ public final class HNS extends JavaPlugin {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    private void registerCommands() {
+        Objects.requireNonNull(getCommand("hns")).setExecutor(new MainCmd());
     }
 
     @Override

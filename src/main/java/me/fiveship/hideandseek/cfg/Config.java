@@ -5,9 +5,16 @@ import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.game.Settings;
 
 import java.io.File;
-import java.io.IOException;
 
 public class Config {
+
+    @JsonProperty("Global")
+    public Settings global = new Settings();
+
+    @JsonProperty("SaveMapsOnStop")
+    public boolean saveMapsOnStop = true;
+    @JsonProperty("SaveCfgOnStop")
+    public boolean saveCfgOnStop = false;
 
     public static Config load() {
         try {
@@ -24,13 +31,5 @@ public class Config {
             e.printStackTrace();
         }
     }
-
-    @JsonProperty("Global")
-    public Settings global = new Settings();
-
-    @JsonProperty("SaveMapsOnStop")
-    public boolean saveMapsOnStop = true;
-    @JsonProperty("SaveCfgOnStop")
-    public boolean saveCfgOnStop = false;
 
 }

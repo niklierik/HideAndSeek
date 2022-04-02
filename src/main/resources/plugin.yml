@@ -2,3 +2,8 @@ name: HideAndSeek
 version: '${project.version}'
 main: me.fiveship.hideandseek.HNS
 api-version: 1.18
+
+commands:
+  hns:
+    description: Main command for HNS
+    aliases: [blockhunt,hideandseek,hidenseek,bh]

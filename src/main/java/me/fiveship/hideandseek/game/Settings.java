@@ -19,6 +19,14 @@ public class Settings {
     public Integer turningToBlockTime = 3;
     @JsonProperty("MoveAsPlayer")
     public Boolean moveAsPlayer = false;
+    @JsonProperty("SeekerHealth")
+    public Double seekerHP = 5.0;
+    @JsonProperty("HiderHealth")
+    public Double hiderHP = 2.0;
+    @JsonProperty("MiningFatigueForSeeker")
+    public Integer seekerMiningFatigue = 0;
+    @JsonProperty("MiningFatigueForHider")
+    public Integer hiderMiningFatigue = 0;
 
 
     @JsonCreator
