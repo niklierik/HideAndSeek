@@ -1,0 +1,4 @@
+name: HideAndSeek
+version: '${project.version}'
+main: me.fiveship.hideandseek.HNS
+api-version: 1.18

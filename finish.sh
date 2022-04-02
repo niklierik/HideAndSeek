@@ -1,0 +1,1 @@
+mv "X:\Workspace\Java\Spigot Plugins\HideAndSeek\target\hideandseek-1.0-SNAPSHOT.jar" "X:\MC\BolondBujas\plugins"
