@@ -133,14 +133,14 @@ public class MainListener implements Listener {
                             case "seekerspawn", "seekerspawns", "seeker-spawns", "seeker-spawn" -> {
                                 for (int i = 0; i < mode.map.seekerSpawns.size(); i++) {
                                     var s = mode.map.seekerSpawns.get(i);
-                                    player.sendMessage(new CStr(" &b" + i + ": &7" + s.toString()).toString());
+                                    player.sendMessage(new CStr(" &b" + i + ": &7" + s.toColoredString()).toString());
                                 }
                                 player.sendMessage("");
                             }
                             case "hiderspawn", "hiderspawns", "hider-spawns", "hider-spawn" -> {
                                 for (int i = 0; i < mode.map.hiderSpawns.size(); i++) {
                                     var s = mode.map.hiderSpawns.get(i);
-                                    player.sendMessage(new CStr(" &b" + i + ": &7" + s.toString()).toString());
+                                    player.sendMessage(new CStr(" &b" + i + ": &7" + s.toColoredString()).toString());
                                 }
                                 player.sendMessage("");
                             }
