@@ -11,11 +11,15 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.TreeSet;
 
 public class Map {
+
+
 
     @JsonProperty("ID")
     public final String id;
@@ -28,6 +32,8 @@ public class Map {
     public List<Location> seekerSpawns = new ArrayList<>();
     @JsonProperty("Enabled")
     public boolean enabled = false;
+    @JsonProperty("BlockTypes")
+    public TreeSet<Material> blockTypes = new TreeSet<>(Comparator.comparing(Enum::toString));
 
     @JsonIgnore
     public HashSet<Player> players = new HashSet<>();
@@ -35,6 +41,10 @@ public class Map {
     public HashMap<Player, Material> materials = new HashMap<>();
     @JsonIgnore
     public HashMap<Player, Integer> datas = new HashMap<>();
+    @JsonIgnore
+    public Phase phase = Phase.WAITING;
+    @JsonIgnore
+    public HashMap<Player, Team> teams = new HashMap<>();
 
     @JsonCreator
     public Map(@JsonProperty("ID") String id) {
@@ -46,20 +56,23 @@ public class Map {
     }
 
     public void onTick(double delta) {
-        for (var player : players) {
-            player.setSaturation(10.0f);
-            double d = HNS.timer.getOrDefault(player, 0.0);
-            d += delta;
-            var block = HNS.toCenter(player.getLocation()).getBlock();
-            if (d >= override.turningToBlockTime && block.getType() == Material.AIR) {
-                d = override.turningToBlockTime;
-                player.teleport(HNS.toCenter(player.getLocation()));
-               // HNS.disguise(player, null, 0);
-                player.setGameMode(GameMode.SPECTATOR);
-                block.setType(block.getType(), true);
-                HNS.blocks.put(player, block);
+        if (phase == Phase.SEEKING || phase == Phase.HIDING) {
+            for (var player : players) {
+                player.setSaturation(10.0f);
+                double d = HNS.timer.getOrDefault(player, 0.0);
+                d += delta;
+                var block = HNS.toCenter(player.getLocation()).getBlock();
+                if (d >= override.turningToBlockTime && block.getType() == Material.AIR) {
+                    d = override.turningToBlockTime;
+                    player.teleport(HNS.toCenter(player.getLocation()));
+                    // HNS.disguise(player, null, 0);
+                    player.setGameMode(GameMode.SPECTATOR);
+                    block.setType(block.getType(), true);
+                    HNS.blocks.put(player, block);
+                    HNS.blocksR.put(block, player);
+                }
+                HNS.timer.put(player, d);
             }
-            HNS.timer.put(player, d);
         }
     }
 

@@ -43,6 +43,7 @@ public final class HNS extends JavaPlugin {
     public static final HashMap<Player, Double> timer = new HashMap<>();
     public static final HashMap<Player, MiscDisguise> disguises = new HashMap<>();
     public static final HashMap<Player, Block> blocks = new HashMap<>();
+    public static final HashMap<Block, Player> blocksR = new HashMap<>();
     public static double deltaTime;
     private static long currentTime;
     private static long lastTime;

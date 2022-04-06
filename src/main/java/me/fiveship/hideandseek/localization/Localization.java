@@ -16,6 +16,10 @@ public class Localization {
     public static String mapCreated;
     public static String mapSelected;
     public static String mapDoesNotExist;
+    public static List<String> helpList = new ArrayList<>();
+    public static String mapNotSelected;
+    public static String helpMap;
+    public static String helpCreate;
 
     public static void set(Lang l) {
         set(l.toString());
@@ -41,6 +45,14 @@ public class Localization {
                 helpEditor.add(c("  &e[#]chat-off &7&l- &bDisables chat-mode and "));
                 helpEditor.add(c(" "));
                 /////
+                helpList.add(c("&6list &b<mode>"));
+                helpList.add(c("&7----&b<&eModes&b>&7----"));
+                helpList.add(c("  &eseekerspawn&6|&eseeker-spawn&6|&eseeker-spawns&6|&eseekerspawns&6|&ess &7&l:"));
+                helpList.add(c("    &bList the seeker spawns with indicies"));
+                helpList.add(c("  &ehiderspawn&6|&ehider-spawn&6|&ehider-spawns&6|&ehiderspawns&6|&ehs &7&l:"));
+                helpList.add(c("    &bList the hider spawns with indicies"));
+                helpList.add("");
+                /////
                 invalidCmd = "&cCommand was not found. Try &6/{0} help&c.";
                 entersEditor = c("You opened the &bEditor&f! Just write to the chat to enter your commands. Try &6help &fto list these commands.");
                 invalidEditorCmd = c("This command does not exist. Try &6help &ffor help or &6chat &fto write to chat or &cexit &fto exit the editor.");
@@ -49,6 +61,9 @@ public class Localization {
                 mapCreated = c("&6Map &b{0} &6is created and selected.");
                 mapSelected = c("&6Map &b{0} &6is selected.");
                 mapDoesNotExist = c("&cMap &6{0} &cdoes not exist.");
+                mapNotSelected = c("&cYou need to select a map before you use this command.");
+                helpMap = c("&cInvalid syntax, try &6map &c<map-ID>&c.");
+                helpCreate = c("&cInvalid syntax, try &6create &c<map-ID>&c.");
             }
             case "HUNGARIAN" -> {
                 helpCmd.add(c("&7----&b<&eParancsok&b>&7----"));
@@ -68,6 +83,14 @@ public class Localization {
                 helpEditor.add(c("  &e[#]chat-off &7&l- &bKikapcsolja a chat-mode-ot"));
                 helpEditor.add(c(" "));
                 /////
+                helpList.add(c("&6list &b<mode>"));
+                helpList.add(c("&7----&b<&eModes&b>&7----"));
+                helpList.add(c("  &eseekerspawn&6|&eseeker-spawn&6|&eseeker-spawns&6|&eseekerspawns&6|&ess &7&l:"));
+                helpList.add(c("    &bKilistázza a keresők spawnjait indexekkel"));
+                helpList.add(c("  &ehiderspawn&6|&ehider-spawn&6|&ehider-spawns&6|&ehiderspawns&6|&ehs &7&l:"));
+                helpList.add(c("    &bKilistázza a bújók spawnjait indexekkel"));
+                helpList.add("");
+                /////
                 invalidCmd = c("&cA parancs nem található. Próbáld meg a &6/{0} help&c parancsot.");
                 entersEditor = c("Beléptél az &bEditor&f-ba! Csak a chat-be kell beírnod normális szövegként a parancsokat. Próbáld ki a &6help &fparancsot, hogy ezeket megnézd.");
                 invalidEditorCmd = c("Ez a parancs nem létezik. Próbáld meg a &6help &fparancsot segítségért, &6chat &fparancsot, hogy a chat-re írj vagy az &cexit &fparancsot, hogy kilépj a szerkesztőből.");
@@ -75,6 +98,9 @@ public class Localization {
                 takenName = c("&cMár létezik map ilyen ID-vel.");
                 mapCreated = c("&6A(z) &b{0} &6map elkészült és ki lett választva.");
                 mapSelected = c("&6A(z) &b{0} &6map elkészült.");
+                mapNotSelected = c("&cElőször egy mapot kell kiválasztanod, hogy ezt a parancsot lefuttasd.");
+                helpMap = c("&cHelytelen szintaxis, próbáld meg ezt: &6map &c<map-ID>&c.");
+                helpCreate = c("&cHelytelen szintaxis, próbáld meg ezt: &6create &c<map-ID>&c.");
             }
         }
     }
