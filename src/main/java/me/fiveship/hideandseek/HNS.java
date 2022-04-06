@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import me.fiveship.hideandseek.cfg.Config;
+import me.fiveship.hideandseek.cmd.EditorMode;
 import me.fiveship.hideandseek.cmd.MainCmd;
 import me.fiveship.hideandseek.events.MainListener;
 import me.fiveship.hideandseek.game.Map;
@@ -47,6 +48,7 @@ public final class HNS extends JavaPlugin {
     private static long lastTime;
     public static final HashSet<UUID> players = new HashSet<>();
     public static HashSet<Player> inEditor = new HashSet<>();
+    public static HashMap<Player, EditorMode> editorContext = new HashMap<>();
 
     public static File mapsFolder() {
         return new File(pluginFolder, "Maps");
@@ -141,6 +143,7 @@ public final class HNS extends JavaPlugin {
         }
     }
 
+    @Deprecated
     public static void disguise(Player player, Material m, int v) {
         var old = disguises.getOrDefault(player, null);
         if (old != null) {

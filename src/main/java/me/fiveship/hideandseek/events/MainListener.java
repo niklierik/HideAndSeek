@@ -14,12 +14,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.intellij.lang.annotations.RegExp;
 
-import java.util.HashMap;
+import java.util.regex.Pattern;
 
 public class MainListener implements Listener {
 
-    private HashMap<Player, EditorMode> editorContext = new HashMap<>();
+
+    @RegExp
+    private static final String PATTERN = "[A-Za-z][A-Za-z0-9]*";
 
     @EventHandler
     public void onPlayerMoved(PlayerMoveEvent event) {
@@ -52,7 +55,7 @@ public class MainListener implements Listener {
     public void onChat(AsyncChatEvent event) {
         var player = event.getPlayer();
         String msg = PlainTextComponentSerializer.plainText().serialize(event.message());
-        EditorMode mode = editorContext.getOrDefault(player, new EditorMode());
+        EditorMode mode = HNS.editorContext.getOrDefault(player, new EditorMode());
         if (HNS.inEditor.contains(player) && player.isOp() && (!mode.inChat || msg.startsWith("#"))) {
             if (msg.startsWith("#")) {
                 msg = msg.substring(1);
@@ -72,17 +75,27 @@ public class MainListener implements Listener {
                 mode.inChat = false;
             } else if (msg.startsWith("create ")) {
                 msg = msg.substring("create ".length());
-
+                if (HNS.maps.containsKey(msg)) {
+                    player.sendMessage(Localization.takenName);
+                } else {
+                    if (Pattern.matches(PATTERN, msg)) {
+                        Map map = new Map(msg);
+                        HNS.maps.put(map.id, map);
+                    } else {
+                        player.sendMessage(Localization.invalidMapName);
+                    }
+                }
             } else if (msg.startsWith("map ")) {
                 msg = msg.substring("map ".length());
 
             } else if (msg.equalsIgnoreCase("exit")) {
                 HNS.inEditor.remove(player);
+                HNS.editorContext.remove(player);
             } else {
                 player.sendMessage(Localization.invalidEditorCmd);
             }
         }
-        editorContext.put(player, mode);
+        HNS.editorContext.put(player, mode);
     }
 
 }

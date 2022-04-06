@@ -9,11 +9,10 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class Map implements Serializable {
+public class Map {
 
     @JsonProperty("ID")
     public final String id;
@@ -48,13 +47,12 @@ public class Map implements Serializable {
             if (d >= override.turningToBlockTime && block.getType() == Material.AIR) {
                 d = override.turningToBlockTime;
                 player.teleport(HNS.toCenter(player.getLocation()));
-                HNS.disguise(player, null, 0);
+               // HNS.disguise(player, null, 0);
                 player.setGameMode(GameMode.SPECTATOR);
                 block.setType(block.getType(), true);
                 HNS.blocks.put(player, block);
             }
             HNS.timer.put(player, d);
-
         }
     }
 
