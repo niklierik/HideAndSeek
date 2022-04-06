@@ -47,7 +47,6 @@ public final class HNS extends JavaPlugin {
     private static long currentTime;
     private static long lastTime;
     public static final HashSet<UUID> players = new HashSet<>();
-    public static HashSet<Player> inEditor = new HashSet<>();
     public static HashMap<Player, EditorMode> editorContext = new HashMap<>();
 
     public static File mapsFolder() {

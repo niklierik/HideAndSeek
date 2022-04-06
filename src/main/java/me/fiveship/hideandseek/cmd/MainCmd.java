@@ -52,7 +52,7 @@ public class MainCmd implements CommandExecutor {
                     case "editor" -> {
                         if (player != null && player.isOp()) {
                             player.sendMessage(Localization.args(Localization.entersEditor));
-                            HNS.inEditor.add(player);
+                            HNS.editorContext.put(player, new EditorMode());
                         } else {
                             invalidCmd(sender, label);
                         }

@@ -13,6 +13,9 @@ public class Localization {
     public static String invalidEditorCmd;
     public static String invalidMapName;
     public static String takenName;
+    public static String mapCreated;
+    public static String mapSelected;
+    public static String mapDoesNotExist;
 
     public static void set(Lang l) {
         set(l.toString());
@@ -42,7 +45,10 @@ public class Localization {
                 entersEditor = c("You opened the &bEditor&f! Just write to the chat to enter your commands. Try &6help &fto list these commands.");
                 invalidEditorCmd = c("This command does not exist. Try &6help &ffor help or &6chat &fto write to chat or &cexit &fto exit the editor.");
                 invalidMapName = c("&cInvalid map name.");
-                takenName = c("&cThe map's id is already taken.");
+                takenName = c("&cThe map's id is already taken. &6Use &cselect {0} &6to select this map.");
+                mapCreated = c("&6Map &b{0} &6is created and selected.");
+                mapSelected = c("&6Map &b{0} &6is selected.");
+                mapDoesNotExist = c("&cMap &6{0} &cdoes not exist.");
             }
             case "HUNGARIAN" -> {
                 helpCmd.add(c("&7----&b<&eParancsok&b>&7----"));
@@ -67,6 +73,8 @@ public class Localization {
                 invalidEditorCmd = c("Ez a parancs nem létezik. Próbáld meg a &6help &fparancsot segítségért, &6chat &fparancsot, hogy a chat-re írj vagy az &cexit &fparancsot, hogy kilépj a szerkesztőből.");
                 invalidMapName = c("&cA map ID-je csak az angol ABC betűit tartalmazhatja, illetve számokat, de számmal nem kezdődhet.");
                 takenName = c("&cMár létezik map ilyen ID-vel.");
+                mapCreated = c("&6A(z) &b{0} &6map elkészült és ki lett választva.");
+                mapSelected = c("&6A(z) &b{0} &6map elkészült.");
             }
         }
     }

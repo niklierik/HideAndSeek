@@ -5,12 +5,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class Map {
 
@@ -19,6 +22,10 @@ public class Map {
 
     @JsonProperty("Overriding")
     public Settings override = new Settings();
+    @JsonProperty("HiderSpawns")
+    public List<Location> hiderSpawns = new ArrayList<>();
+    @JsonProperty("SeekerSpawns")
+    public List<Location> seekerSpawns = new ArrayList<>();
     @JsonProperty("Enabled")
     public boolean enabled = false;
 

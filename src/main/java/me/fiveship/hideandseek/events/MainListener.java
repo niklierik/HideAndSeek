@@ -56,7 +56,7 @@ public class MainListener implements Listener {
         var player = event.getPlayer();
         String msg = PlainTextComponentSerializer.plainText().serialize(event.message());
         EditorMode mode = HNS.editorContext.getOrDefault(player, new EditorMode());
-        if (HNS.inEditor.contains(player) && player.isOp() && (!mode.inChat || msg.startsWith("#"))) {
+        if (HNS.editorContext.containsKey(player) && player.isOp() && (!mode.inChat || msg.startsWith("#"))) {
             if (msg.startsWith("#")) {
                 msg = msg.substring(1);
             }
@@ -76,26 +76,37 @@ public class MainListener implements Listener {
             } else if (msg.startsWith("create ")) {
                 msg = msg.substring("create ".length());
                 if (HNS.maps.containsKey(msg)) {
-                    player.sendMessage(Localization.takenName);
+                    player.sendMessage(args(Localization.takenName, msg));
                 } else {
                     if (Pattern.matches(PATTERN, msg)) {
                         Map map = new Map(msg);
                         HNS.maps.put(map.id, map);
+                        player.sendMessage(args(Localization.mapCreated, msg));
                     } else {
-                        player.sendMessage(Localization.invalidMapName);
+                        player.sendMessage(args(Localization.invalidMapName, msg));
                     }
                 }
             } else if (msg.startsWith("map ")) {
                 msg = msg.substring("map ".length());
-
+                var map = HNS.maps.getOrDefault(msg, null);
+                if (map != null) {
+                    HNS.editorContext.get(player).map = map;
+                    player.sendMessage(args(Localization.mapSelected, msg));
+                } else {
+                    player.sendMessage(args(Localization.mapDoesNotExist, msg));
+                }
             } else if (msg.equalsIgnoreCase("exit")) {
-                HNS.inEditor.remove(player);
                 HNS.editorContext.remove(player);
             } else {
                 player.sendMessage(Localization.invalidEditorCmd);
             }
         }
         HNS.editorContext.put(player, mode);
+    }
+
+    private String args(String l, Object... args) {
+        return Localization.args(l, args);
+
     }
 
 }
