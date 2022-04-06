@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
+import me.fiveship.hideandseek.localization.Localization;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -32,6 +34,10 @@ public class Map {
     public boolean enabled = false;
     @JsonProperty("BlockTypes")
     public TreeSet<Material> blockTypes = new TreeSet<>(Comparator.comparing(Enum::toString));
+    @JsonProperty("BoundsMin")
+    public Location boundsMin;
+    @JsonProperty("BoundsMax")
+    public Location boundsMax;
 
     @JsonIgnore
     public HashSet<Player> players = new HashSet<>();
@@ -106,6 +112,29 @@ public class Map {
             }
             players.clear();
         }
+    }
+
+    /**
+     *
+     * @return error message or null if valid
+     */
+    public String validate() {
+        if (boundsMin == null) {
+            return Localization.notSetBoundMin;
+        }
+        if (boundsMax == null) {
+            return Localization.notSetBoundMax;
+        }
+        if (blockTypes.isEmpty()) {
+            return Localization.notSetBlocks;
+        }
+        if (hiderSpawns.isEmpty()) {
+            return Localization.notSetHiderSpawns;
+        }
+        if (seekerSpawns.isEmpty()) {
+            return Localization.notSetSeekerSpawns;
+        }
+        return null;
     }
 
     public static Map playerIn(Player pl) {

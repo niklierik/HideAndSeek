@@ -20,6 +20,11 @@ public class Localization {
     public static String mapNotSelected;
     public static String helpMap;
     public static String helpCreate;
+    public static String notSetBoundMin;
+    public static String notSetBoundMax;
+    public static String notSetBlocks;
+    public static String notSetHiderSpawns;
+    public static String notSetSeekerSpawns;
 
     public static void set(Lang l) {
         set(l.toString());
@@ -64,6 +69,11 @@ public class Localization {
                 mapNotSelected = c("&cYou need to select a map before you use this command.");
                 helpMap = c("&cInvalid syntax, try &6map &c<map-ID>&c.");
                 helpCreate = c("&cInvalid syntax, try &6create &c<map-ID>&c.");
+                notSetBoundMin = c("&cMap's bound is not set.");
+                notSetBoundMax = c("&cMap's bound is not set.");
+                notSetBlocks = c("&cBlocks that hiders can use are not set.");
+                notSetHiderSpawns = c("&cThere is no valid hider spawn.");
+                notSetSeekerSpawns = c("&cThere is no valid seeker spawn.");
             }
             case "HUNGARIAN" -> {
                 helpCmd.add(c("&7----&b<&eParancsok&b>&7----"));
@@ -101,6 +111,11 @@ public class Localization {
                 mapNotSelected = c("&cElőször egy mapot kell kiválasztanod, hogy ezt a parancsot lefuttasd.");
                 helpMap = c("&cHelytelen szintaxis, próbáld meg ezt: &6map &c<map-ID>&c.");
                 helpCreate = c("&cHelytelen szintaxis, próbáld meg ezt: &6create &c<map-ID>&c.");
+                notSetBoundMin = c("&cMap határa nincs beállítva.");
+                notSetBoundMax = c("&cMap határa nincs beállítva.");
+                notSetBlocks = c("&cBlokkok, amiket a bújok tudnak használni nincsenek beállítva.");
+                notSetHiderSpawns = c("&cBújók spawnja nincs beállítva.");
+                notSetSeekerSpawns = c("&cKeresők spawnja nincs beállítva.");
             }
         }
     }
