@@ -21,6 +21,8 @@ public class Config {
     public Lang lang = Lang.ENGLISH;
     @JsonProperty("Lobby")
     public Location lobby;
+    @JsonProperty("TeleportToLobby")
+    public boolean teleportToLobby;
 
     public Config() {
     }

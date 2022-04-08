@@ -3,6 +3,7 @@ package me.fiveship.hideandseek.events;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.cmd.EditorMode;
+import me.fiveship.hideandseek.game.LocationData;
 import me.fiveship.hideandseek.game.Map;
 import me.fiveship.hideandseek.game.Team;
 import me.fiveship.hideandseek.localization.CStr;
@@ -11,14 +12,19 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.intellij.lang.annotations.RegExp;
 
+import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public class MainListener implements Listener {
@@ -38,6 +44,17 @@ public class MainListener implements Listener {
                 // moved more than a little
                 moved(player, from.getY());
             }
+        }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (HNS.cfg.teleportToLobby && HNS.cfg.lobby != null) {
+            event.getPlayer().teleport(HNS.cfg.lobby);
+        }
+        try {
+            HNS.inGameTeam.removeEntity(event.getPlayer());
+        } catch (Exception ignored) {
         }
     }
 
@@ -120,15 +137,20 @@ public class MainListener implements Listener {
                     }
                 }
             } else if (msg.startsWith("list")) {
-                if (mode.map == null) {
-                    player.sendMessage(Localization.mapNotSelected);
+                if ("list".equalsIgnoreCase(msg)) {
+                    for (var s : Localization.helpList) {
+                        player.sendMessage(s);
+                    }
                 } else {
-                    if ("list".equalsIgnoreCase(msg)) {
-                        for (var s : Localization.helpList) {
-                            player.sendMessage(s);
+                    msg = msg.substring("list ".length());
+                    if (msg.equalsIgnoreCase("maps")) {
+                        player.sendMessage("Maps:");
+                        for (var map : HNS.maps.values()) {
+                            player.sendMessage(map.id);
                         }
+                    } else if (mode.map == null) {
+                        player.sendMessage(Localization.mapNotSelected);
                     } else {
-                        msg = msg.substring("list ".length());
                         switch (msg.toUpperCase()) {
                             case "seekerspawn", "seekerspawns", "seeker-spawns", "seeker-spawn" -> {
                                 for (int i = 0; i < mode.map.seekerSpawns.size(); i++) {
@@ -147,10 +169,64 @@ public class MainListener implements Listener {
                         }
                     }
                 }
+            } else if (msg.startsWith("blocks")) {
+                boolean append = false;
+                if (msg.equalsIgnoreCase("blocks -a")) {
+                    append = true;
+                }
+                HashSet<Material> materials = new HashSet<>();
+                for (ItemStack stack : player.getInventory()) {
+                    if (stack != null && stack.getType() != Material.AIR) {
+                        materials.add(stack.getType());
+                    }
+                }
+                if (append) {
+                    mode.map.blockTypes.addAll(materials);
+                } else {
+                    mode.map.blockTypes = new TreeSet<>(materials);
+                }
+                player.sendMessage("Blocks updated");
+            } else if (msg.startsWith("spawn")) {
+                if (msg.equalsIgnoreCase("spawn")) {
+                    player.sendMessage("spawn <name> <s|h|sh|hs> <icon>");
+                } else {
+                    msg = msg.substring("spawn ".length());
+                    String[] words = msg.split(" ");
+                    if (words.length == 3) {
+                        boolean seeker = words[1].contains("s");
+                        boolean hider = words[1].contains("h");
+                        LocationData d = new LocationData();
+                        d.name = words[0];
+                        d.location = HNS.toCenter(player.getLocation());
+                        d.icon = Material.valueOf(words[2].toUpperCase());
+                        if (seeker) {
+                            mode.map.seekerSpawns.add(d);
+                        }
+                        if (hider) {
+                            mode.map.hiderSpawns.add(d);
+                        }
+                    } else {
+                        player.sendMessage("spawn <name> <s|h|sh|hs>");
+                    }
+                }
             } else if (msg.equalsIgnoreCase("exit")) {
                 HNS.editorContext.remove(player);
+            } else if (msg.equalsIgnoreCase("enable")) {
+                var s = mode.map.validate();
+                if (s == null) {
+                    mode.map.enabled = true;
+                    player.sendMessage(new CStr("&aMap enabled.").toString());
+                } else {
+                    player.sendMessage(s);
+                }
+            } else if (msg.equalsIgnoreCase("disable")) {
+                mode.map.enabled = false;
+                player.sendMessage(new CStr("&cMap disabled.").toString());
             } else {
                 player.sendMessage(Localization.invalidEditorCmd);
+            }
+            if (mode.map != null) {
+                mode.map.save();
             }
         }
         HNS.editorContext.put(player, mode);

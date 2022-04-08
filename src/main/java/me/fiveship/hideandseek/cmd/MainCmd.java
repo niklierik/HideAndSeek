@@ -1,8 +1,11 @@
 package me.fiveship.hideandseek.cmd;
 
 import me.fiveship.hideandseek.HNS;
+import me.fiveship.hideandseek.game.Map;
+import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
-import org.bukkit.Material;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,22 +29,6 @@ public class MainCmd implements CommandExecutor {
                     case "help" -> {
                         helpCmd(sender, label);
                     }
-                    case "block" -> {
-                        if (player != null && player.isOp()) {
-                            Material block = null;
-                            int v = 0;
-                            if (args.length >= 2) {
-                                block = Material.valueOf(args[1].toUpperCase());
-                            }
-                            if (args.length >= 3) {
-                                v = Integer.parseInt(args[2]);
-                            }
-                            HNS.disguise(player, block, v);
-                            player.sendMessage("Success!");
-                        } else {
-                            invalidCmd(sender, label);
-                        }
-                    }
                     case "center" -> {
                         if (player != null && player.isOp()) {
                             player.teleport(HNS.toCenter(player.getLocation()));
@@ -55,6 +42,58 @@ public class MainCmd implements CommandExecutor {
                             HNS.editorContext.put(player, new EditorMode());
                         } else {
                             invalidCmd(sender, label);
+                        }
+                    }
+                    case "join" -> {
+                        if (player != null) {
+                            if (args.length == 2) {
+                                Map map = HNS.maps.getOrDefault(args[1], null);
+                                if (map == null) {
+                                    player.sendMessage(new CStr("&cInvalid map ID.").toString());
+                                } else {
+                                    map.join(player);
+                                }
+                            } else {
+                                player.sendMessage(new CStr("&cInvalid syntax, try &6/" + label + " join &7<map>&c.").toString());
+                            }
+                        } else {
+                            invalidCmd(sender, label);
+                        }
+                    }
+                    case "forcestart", "start" -> {
+                        if (args.length == 2) {
+                            Map map = HNS.maps.getOrDefault(args[1], null);
+                            if (map == null) {
+                                sender.sendMessage(new CStr("&cInvalid map ID.").toString());
+                            } else {
+                                map.start();
+                            }
+                        } else {
+                            sender.sendMessage(new CStr("&cInvalid syntax, try &6/" + label + " " + args[1] + " &7<map>&c.").toString());
+                        }
+                    }
+                    case "block" -> {
+                        if (player == null) {
+                            invalidCmd(sender, label);
+                        } else {
+                            Map map = Map.playerIn(player);
+                            if (map == null) {
+                                invalidCmd(sender, label);
+                            } else {
+                                map.blockChooser(player);
+                            }
+                        }
+                    }
+                    case "spawn" -> {
+                        if (player == null) {
+                            invalidCmd(sender, label);
+                        } else {
+                            Map map = Map.playerIn(player);
+                            if (map == null) {
+                                invalidCmd(sender, label);
+                            } else {
+                                Bukkit.createInventory(null, 54, Component.text("Blokkok"));
+                            }
                         }
                     }
                     default -> {

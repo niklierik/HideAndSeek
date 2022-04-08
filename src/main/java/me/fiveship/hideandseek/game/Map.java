@@ -5,8 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.events.MainListener;
+import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,10 +16,12 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.TreeSet;
 
 public class Map {
@@ -27,7 +31,7 @@ public class Map {
     public final String id;
 
     @JsonProperty("Overriding")
-    public Settings override = null;
+    public Settings override = new Settings();
     @JsonProperty("HiderSpawns")
     public List<LocationData> hiderSpawns = new ArrayList<>();
     @JsonProperty("SeekerSpawns")
@@ -36,10 +40,6 @@ public class Map {
     public boolean enabled = false;
     @JsonProperty("BlockTypes")
     public TreeSet<Material> blockTypes = new TreeSet<>(Comparator.comparing(Enum::toString));
-    @JsonProperty("BoundsMin")
-    public Location boundsMin;
-    @JsonProperty("BoundsMax")
-    public Location boundsMax;
 
     @JsonIgnore
     public HashSet<Player> players = new HashSet<>();
@@ -49,8 +49,13 @@ public class Map {
     public Phase phase = Phase.WAITING;
     @JsonIgnore
     public HashMap<Player, Team> teams = new HashMap<>();
+    @JsonIgnore
+    public HashMap<Player, Location> desiredSpawn = new HashMap<>();
 
+    @JsonIgnore
     private double timer;
+    @JsonIgnore
+    private final Random rng = new Random();
 
     @JsonCreator
     public Map(@JsonProperty("ID") String id) {
@@ -126,9 +131,12 @@ public class Map {
                         player.teleport(HNS.toCenter(player.getLocation()));
                         // HNS.disguise(player, null, 0);
                         player.setGameMode(GameMode.SPECTATOR);
-                        block.setType(block.getType(), true);
-                        HNS.blocks.put(player, block);
-                        HNS.blocksR.put(block, player);
+                        try {
+                            block.setType(materials.get(player), true);
+                            HNS.blocks.put(player, block);
+                            HNS.blocksR.put(block, player);
+                        } catch (Exception ignored) {
+                        }
                     }
                     HNS.timer.put(player, d);
                 }
@@ -141,9 +149,22 @@ public class Map {
         }
     }
 
-    private void start() {
+    public void start() {
         phase = Phase.HIDING;
         timer = 0;
+        var l = new ArrayList<>(players);
+        Collections.shuffle(l);
+        int noSeekers = l.size() / override.seekersByPlayer + 1;
+        for (int i = 0; i < noSeekers; i++) {
+            var p = l.get(i);
+            teams.put(p, Team.SEEKER);
+            desiredSpawn.put(p, seekerSpawns.get(rng.nextInt(seekerSpawns.size())).location);
+        }
+        for (var entry : teams.entrySet()) {
+            if (entry.getValue() == Team.HIDER) {
+                entry.getKey().teleport(desiredSpawn.get(entry.getKey()));
+            }
+        }
     }
 
     private void toSeekPhase() {
@@ -206,9 +227,9 @@ public class Map {
     public void kickPlayers() {
         for (var player : new HashSet<>(players)) {
             HNS.players.remove(player.getUniqueId());
-            players.clear();
-            teams.clear();
         }
+        players.clear();
+        teams.clear();
     }
 
     public void onDestroy() {
@@ -221,12 +242,6 @@ public class Map {
      * @return error message or null if valid
      */
     public String validate() {
-        if (boundsMin == null) {
-            return Localization.notSetBoundMin;
-        }
-        if (boundsMax == null) {
-            return Localization.notSetBoundMax;
-        }
         if (blockTypes.isEmpty()) {
             return Localization.notSetBlocks;
         }
@@ -248,4 +263,19 @@ public class Map {
         return null;
     }
 
+    public void join(Player player) {
+        if (!enabled) {
+            player.sendMessage(new CStr("&cMap is not enabled.").toString());
+            return;
+        }
+        players.add(player);
+        teams.put(player, Team.HIDER);
+        materials.put(player, new ArrayList<>(blockTypes).get(rng.nextInt(blockTypes.size())));
+        desiredSpawn.put(player, hiderSpawns.get(rng.nextInt(hiderSpawns.size())).location);
+    }
+
+    public void blockChooser(Player player) {
+        var inv = Bukkit.createInventory(null, 54, Component.text("Blokkok"));
+        
+    }
 }

@@ -106,8 +106,8 @@ public class Localization {
                 invalidEditorCmd = c("Ez a parancs nem létezik. Próbáld meg a &6help &fparancsot segítségért, &6chat &fparancsot, hogy a chat-re írj vagy az &cexit &fparancsot, hogy kilépj a szerkesztőből.");
                 invalidMapName = c("&cA map ID-je csak az angol ABC betűit tartalmazhatja, illetve számokat, de számmal nem kezdődhet.");
                 takenName = c("&cMár létezik map ilyen ID-vel.");
-                mapCreated = c("&6A(z) &b{0} &6map elkészült és ki lett választva.");
-                mapSelected = c("&6A(z) &b{0} &6map elkészült.");
+                mapSelected = c("&6A(z) &b{0} &6map elkészült és ki lett választva.");
+                mapCreated  = c("&6A(z) &b{0} &6map elkészült.");
                 mapNotSelected = c("&cElőször egy mapot kell kiválasztanod, hogy ezt a parancsot lefuttasd.");
                 helpMap = c("&cHelytelen szintaxis, próbáld meg ezt: &6map &c<map-ID>&c.");
                 helpCreate = c("&cHelytelen szintaxis, próbáld meg ezt: &6create &c<map-ID>&c.");

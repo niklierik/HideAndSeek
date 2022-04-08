@@ -3,7 +3,6 @@ version: '${project.version}'
 main: me.fiveship.hideandseek.HNS
 api-version: 1.18
 depend: [ "LibsDisguises","ProtocolLib" ]
-softdepend: ["WorldEdit"]
 
 commands:
   hns:

@@ -1,11 +1,13 @@
 package me.fiveship.hideandseek.game;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 public class LocationData {
 
     public String name = "";
     public Location location;
+    public Material icon;
 
     @Override
     public String toString() {

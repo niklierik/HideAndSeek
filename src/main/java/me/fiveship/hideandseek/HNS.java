@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import me.fiveship.hideandseek.cfg.Config;
 import me.fiveship.hideandseek.cmd.EditorMode;
 import me.fiveship.hideandseek.cmd.MainCmd;
+import me.fiveship.hideandseek.events.InvEvents;
 import me.fiveship.hideandseek.events.MainListener;
 import me.fiveship.hideandseek.game.Map;
 import me.fiveship.hideandseek.localization.Localization;
@@ -26,6 +27,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +51,7 @@ public final class HNS extends JavaPlugin {
     private static long lastTime;
     public static final HashSet<UUID> players = new HashSet<>();
     public static HashMap<Player, EditorMode> editorContext = new HashMap<>();
+    public static Team inGameTeam;
 
     public static File mapsFolder() {
         return new File(pluginFolder, "Maps");
@@ -67,6 +70,14 @@ public final class HNS extends JavaPlugin {
         registerCommands();
         registerListeners();
         lastTime = currentTime = System.nanoTime();
+        inGameTeam = Bukkit.getScoreboardManager().getMainScoreboard().getTeam("HNS_InGame");
+        if (inGameTeam == null) {
+            inGameTeam = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam("HNS_InGame");
+            inGameTeam.setAllowFriendlyFire(true);
+            inGameTeam.setCanSeeFriendlyInvisibles(false);
+            inGameTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            inGameTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        }
     }
 
     private void initJSON() {
@@ -76,7 +87,15 @@ public final class HNS extends JavaPlugin {
             @Override
             public Location deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
                 JsonNode node = p.getCodec().readTree(p);
-                return new Location(Bukkit.getWorld(node.get("World").asText()), node.get("X").asDouble(), node.get("Y").asDouble(), node.get("Z").asDouble(), (float) node.get("Yaw").asDouble(), (float) node.get("Pitch").asDouble());
+                var yaw = 0f;
+                var pitch = 0f;
+                if (node.hasNonNull("Yaw")) {
+                    yaw = (float) node.get("Yaw").asDouble();
+                }
+                if (node.hasNonNull("Pitch")) {
+                    pitch = (float) node.get("Pitch").asDouble();
+                }
+                return new Location(Bukkit.getWorld(node.get("World").asText()), node.get("X").asDouble(), node.get("Y").asDouble(), node.get("Z").asDouble(), yaw, pitch);
             }
         });
         m.addSerializer(Location.class, new JsonSerializer<>() {
@@ -129,6 +148,7 @@ public final class HNS extends JavaPlugin {
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new MainListener(), this);
+        Bukkit.getPluginManager().registerEvents(new InvEvents(), this);
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - lastTime) / 1_000_000_000.0;
