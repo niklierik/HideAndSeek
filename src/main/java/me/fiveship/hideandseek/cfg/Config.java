@@ -22,12 +22,20 @@ public class Config {
     @JsonProperty("Lobby")
     public Location lobby;
 
+    public Config() {
+    }
+
     public static Config load() {
+        Config c;
         try {
-            return HNS.JSON.readValue(new File(HNS.pluginFolder, "config.json"), Config.class);
+            c = HNS.JSON.readValue(new File(HNS.pluginFolder, "config.json"), Config.class);
         } catch (Exception e) {
-            return new Config();
+            c = new Config();
         }
+        Settings d = new Settings();
+        d.setDefault();
+        c.global.keepNotNull(d);
+        return c;
     }
 
     public void save() {

@@ -57,7 +57,7 @@ public class MainListener implements Listener {
         }
     }
 
-    private void moved(Player player, double y) {
+    public static void moved(Player player, double y) {
         if (player.getGameMode().equals(GameMode.SPECTATOR)) {
             var l = player.getLocation();
             l.setY(y);

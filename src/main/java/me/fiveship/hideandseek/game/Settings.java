@@ -6,41 +6,41 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Settings {
 
     @JsonProperty("CanSelectSpawn")
-    public Boolean canSelectSpawn = true;
+    public Boolean canSelectSpawn = null;
     @JsonProperty("CanSelectBlock")
-    public Boolean canSelectBlock = true;
+    public Boolean canSelectBlock = null;
     @JsonProperty("CanChangeBlock")
-    public Boolean canChangeBlock = false;
+    public Boolean canChangeBlock = null;
     @JsonProperty("WaitingTime")
-    public Integer waitingTime = 30;
+    public Integer waitingTime = null;
     @JsonProperty("StartingTime")
-    public Integer startingTime = 5;
+    public Integer startingTime = null;
     @JsonProperty("HideTime")
-    public Integer hideTime = 60;
+    public Integer hideTime = null;
     @JsonProperty("SeekTime")
-    public Integer seekTime = 300;
+    public Integer seekTime = null;
     @JsonProperty("EndTime")
-    public Integer endTime = 10;
+    public Integer endTime = null;
     @JsonProperty("NoPlayersForStartAsWaiting")
-    public Integer waiting_startNo = 3;
+    public Integer waiting_startNo = null;
     @JsonProperty("NoPlayersForStartAsStarting")
-    public Integer start_startNo = 15;
+    public Integer start_startNo = null;
     @JsonProperty("TurningToBlockTime")
-    public Integer turningToBlockTime = 3;
+    public Integer turningToBlockTime = null;
     @JsonProperty("MoveAsPlayer")
-    public Boolean moveAsPlayer = false;
+    public Boolean moveAsPlayer = null;
     @JsonProperty("SeekerHealth")
-    public Double seekerHP = 5.0;
+    public Double seekerHP = null;
     @JsonProperty("HiderHealth")
-    public Double hiderHP = 2.0;
+    public Double hiderHP = null;
     @JsonProperty("MiningFatigueForSeeker")
-    public Integer seekerMiningFatigue = 0;
+    public Integer seekerMiningFatigue = null;
     @JsonProperty("MiningFatigueForHider")
-    public Integer hiderMiningFatigue = 0;
+    public Integer hiderMiningFatigue = null;
     @JsonProperty("DeadCanSeek")
-    public Boolean deadCanSeek = false;
+    public Boolean deadCanSeek = null;
     @JsonProperty("MaxSeeker")
-    public Integer maxSeeker = -1;
+    public Integer maxSeeker = null;
     /**
      * Let n be this value. (def 5)<br>
      * Let h be the number of hiders.<br>
@@ -62,6 +62,27 @@ public class Settings {
     @JsonCreator
     public Settings() {
 
+    }
+
+    public void setDefault() {
+        canSelectSpawn = true;
+        canSelectBlock = true;
+        canChangeBlock = false;
+        waitingTime = 30;
+        startingTime = 5;
+        hideTime = 60;
+        seekTime = 300;
+        endTime = 10;
+        waiting_startNo = 3;
+        start_startNo = 15;
+        turningToBlockTime = 3;
+        moveAsPlayer = false;
+        seekerHP = 5.0;
+        hiderHP = 2.0;
+        seekerMiningFatigue = 0;
+        hiderMiningFatigue = 0;
+        deadCanSeek = false;
+        maxSeeker = -1;
     }
 
     public Settings(Settings s) {
