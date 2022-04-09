@@ -10,21 +10,25 @@ import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.intellij.lang.annotations.RegExp;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public class MainListener implements Listener {
@@ -82,6 +86,38 @@ public class MainListener implements Listener {
         }
         player.setGameMode(GameMode.ADVENTURE);
         HNS.timer.put(player, 0.0);
+    }
+
+    @EventHandler
+    public void onHit(EntityDamageEvent event) {
+        Entity victim = event.getEntity();
+        if (victim instanceof Player player) {
+            Map map = Map.playerIn(player);
+            if (map != null) {
+                var team = map.teams.get(player);
+                if (team == Team.HIDER) {
+                    map.announce(new CStr("&6" + player.getName() + " &c(BÚJÓ) &7kiesett.").toString());
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onKill(PlayerDeathEvent event) {
+        var player = event.getPlayer();
+        Map m = Map.playerIn(player);
+        if (m != null) {
+            var team = m.teams.get(player);
+            if (team == Team.SEEKER) {
+                player.spigot().respawn();
+                Bukkit.getScheduler().scheduleSyncDelayedTask(HNS.plugin, () -> {
+                    player.teleport(m.desiredSpawn.get(player));
+                    player.sendMessage("bocsi c:");
+                }, 20L);
+                player.teleport(m.desiredSpawn.get(player));
+                m.announce(new CStr("&6" + player.getName() + "&c(KERESŐ) &7ki lett ütve.").str());
+            }
+        }
     }
 
     @EventHandler
@@ -151,7 +187,7 @@ public class MainListener implements Listener {
                     } else if (mode.map == null) {
                         player.sendMessage(Localization.mapNotSelected);
                     } else {
-                        switch (msg.toUpperCase()) {
+                        switch (msg.toLowerCase()) {
                             case "seekerspawn", "seekerspawns", "seeker-spawns", "seeker-spawn" -> {
                                 for (int i = 0; i < mode.map.seekerSpawns.size(); i++) {
                                     var s = mode.map.seekerSpawns.get(i);
@@ -183,7 +219,7 @@ public class MainListener implements Listener {
                 if (append) {
                     mode.map.blockTypes.addAll(materials);
                 } else {
-                    mode.map.blockTypes = new TreeSet<>(materials);
+                    mode.map.blockTypes = new ArrayList<>(materials);
                 }
                 player.sendMessage("Blocks updated");
             } else if (msg.startsWith("spawn")) {
@@ -206,7 +242,7 @@ public class MainListener implements Listener {
                             mode.map.hiderSpawns.add(d);
                         }
                     } else {
-                        player.sendMessage("spawn <name> <s|h|sh|hs>");
+                        player.sendMessage("spawn <name> <s|h|sh|hs> <icon>");
                     }
                 }
             } else if (msg.equalsIgnoreCase("exit")) {

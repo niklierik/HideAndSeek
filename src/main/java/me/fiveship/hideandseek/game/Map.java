@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.fiveship.hideandseek.HNS;
+import me.fiveship.hideandseek.events.InvEvents;
 import me.fiveship.hideandseek.events.MainListener;
 import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
@@ -13,16 +14,15 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.TreeSet;
 
 public class Map {
 
@@ -39,7 +39,7 @@ public class Map {
     @JsonProperty("Enabled")
     public boolean enabled = false;
     @JsonProperty("BlockTypes")
-    public TreeSet<Material> blockTypes = new TreeSet<>(Comparator.comparing(Enum::toString));
+    public List<Material> blockTypes = new ArrayList<>();
 
     @JsonIgnore
     public HashSet<Player> players = new HashSet<>();
@@ -170,6 +170,11 @@ public class Map {
     private void toSeekPhase() {
         phase = Phase.SEEKING;
         timer = 0;
+        for (var entry : teams.entrySet()) {
+            if (entry.getValue() == Team.SEEKER) {
+                entry.getKey().teleport(desiredSpawn.get(entry.getKey()));
+            }
+        }
     }
 
     private void toEndPhase() {
@@ -276,6 +281,43 @@ public class Map {
 
     public void blockChooser(Player player) {
         var inv = Bukkit.createInventory(null, 54, Component.text("Blokkok"));
-        
+        int i = 0;
+        for (var block : blockTypes) {
+            inv.setItem(i++, new ItemStack(block));
+        }
+        InvEvents.invs.put(player, "blocks");
+    }
+
+    public Material blockOf(int index) {
+        if (index < 0 || index >= blockTypes.size()) {
+            return null;
+        }
+        return blockTypes.get(index);
+    }
+
+    public LocationData spawn(int index, Player player) {
+        var team = teams.get(player);
+        if (team == null || team == Team.SPECTATOR) {
+            return null;
+        }
+        var list = team == Team.HIDER ? hiderSpawns : seekerSpawns;
+        if (index < 0 || index >= list.size()) {
+            return null;
+        }
+        return list.get(index);
+    }
+
+    public void spawnChooser(Player player) {
+        var team = teams.get(player);
+        if (team == null || team == Team.SPECTATOR) {
+            return;
+        }
+        var inv = Bukkit.createInventory(null, 54, Component.text("Spawnok"));
+        int i = 0;
+        var list = team == Team.HIDER ? hiderSpawns : seekerSpawns;
+        for (var spawn : list) {
+            inv.setItem(i++, new ItemStack(spawn.icon));
+        }
+        InvEvents.invs.put(player, "spawns");
     }
 }

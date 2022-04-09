@@ -92,7 +92,7 @@ public class MainCmd implements CommandExecutor {
                             if (map == null) {
                                 invalidCmd(sender, label);
                             } else {
-                                Bukkit.createInventory(null, 54, Component.text("Blokkok"));
+                                map.spawnChooser(player);
                             }
                         }
                     }

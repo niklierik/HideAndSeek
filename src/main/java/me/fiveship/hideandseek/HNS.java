@@ -47,6 +47,7 @@ public final class HNS extends JavaPlugin {
     public static final HashMap<Player, Block> blocks = new HashMap<>();
     public static final HashMap<Block, Player> blocksR = new HashMap<>();
     public static double deltaTime;
+    public static HNS plugin;
     private static long currentTime;
     private static long lastTime;
     public static final HashSet<UUID> players = new HashSet<>();
@@ -59,6 +60,7 @@ public final class HNS extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        plugin = this;
         initJSON();
         pluginFolder = getDataFolder();
         pluginFolder.mkdirs();
