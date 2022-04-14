@@ -4,8 +4,11 @@ import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.game.Map;
 import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Bisected;
+import org.bukkit.block.data.Directional;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -69,10 +72,10 @@ public class MainCmd implements CommandExecutor {
                                 map.start();
                             }
                         } else {
-                            sender.sendMessage(new CStr("&cInvalid syntax, try &6/" + label + " " + args[1] + " &7<map>&c.").toString());
+                            sender.sendMessage(new CStr("&cInvalid syntax, try &6/" + label + " " + args[0] + " &7<map>&c.").toString());
                         }
                     }
-                    case "block" -> {
+                    case "block", "blocks" -> {
                         if (player == null) {
                             invalidCmd(sender, label);
                         } else {
@@ -84,7 +87,7 @@ public class MainCmd implements CommandExecutor {
                             }
                         }
                     }
-                    case "spawn" -> {
+                    case "spawn", "spawns" -> {
                         if (player == null) {
                             invalidCmd(sender, label);
                         } else {
@@ -94,6 +97,99 @@ public class MainCmd implements CommandExecutor {
                             } else {
                                 map.spawnChooser(player);
                             }
+                        }
+                    }
+                    case "leave" -> {
+                        if (player == null) {
+                            invalidCmd(sender, label);
+                        } else {
+                            Map map = Map.playerIn(player);
+                            if (map == null) {
+                                invalidCmd(sender, label);
+                            } else {
+                                Map.kickPlayer(player, player.getName() + " kilépett.");
+                            }
+                        }
+                    }
+                    case "facing", "rotate" -> {
+                        try {
+                            Block block = HNS.blocks.get(player);
+                            if (block == null) {
+                                sender.sendMessage(ChatColor.RED + "Csak blokk formában használhatod ezt a parancsot.");
+                                return false;
+                            }
+                            var state = block.getState();
+                            var data = state.getBlockData();
+                            if (data instanceof Directional d) {
+                                String direction = "next";
+                                try {
+                                    direction = args[1];
+                                } catch (Exception ignored) {
+                                }
+                                int index = 0;
+                                for (; index < BlockFace.values().length; index++) {
+                                    if (BlockFace.values()[index] == d.getFacing()) {
+                                        break;
+                                    }
+                                }
+                                BlockFace target;
+                                if ("next".equalsIgnoreCase(direction)) {
+                                    target = BlockFace.values()[index + 1];
+                                } else if ("prev".equalsIgnoreCase(direction)) {
+                                    target = BlockFace.values()[index - 1];
+                                } else {
+                                    target = BlockFace.valueOf(direction.toUpperCase());
+                                }
+                                d.setFacing(target);
+                                state.setBlockData(data);
+                            }
+                        } catch (Exception e) {
+                            sender.sendMessage(e.getMessage());
+                        }
+                    }
+                    case "up", "top" -> {
+                        try {
+                            Block block = HNS.blocks.get(player);
+                            if (block == null) {
+                                sender.sendMessage(ChatColor.RED + "Csak blokk formában használhatod ezt a parancsot.");
+                                return false;
+                            }
+                            var state = block.getState();
+                            var data = state.getBlockData();
+                            if (data instanceof Bisected b) {
+                                b.setHalf(Bisected.Half.TOP);
+                                state.setBlockData(data);
+                            }
+                        } catch (Exception e) {
+                            sender.sendMessage(e.getMessage());
+                        }
+                    }
+                    case "down", "bottom" -> {
+                        try {
+                            Block block = HNS.blocks.get(player);
+                            if (block == null) {
+                                sender.sendMessage(ChatColor.RED + "Csak blokk formában használhatod ezt a parancsot.");
+                                return false;
+                            }
+                            var state = block.getState();
+                            var data = state.getData();
+                            if (data instanceof Bisected b) {
+                                b.setHalf(Bisected.Half.BOTTOM);
+                            }
+                        } catch (Exception e) {
+                            sender.sendMessage(e.getMessage());
+                        }
+                    }
+                    case "seek" -> {
+                        if (player != null) {
+                            Map map = Map.playerIn(player);
+                            if (map == null) {
+                                invalidCmd(player, label);
+                            } else {
+                                map.wantToSeek.add(player);
+                            }
+                        } else {
+                            invalidCmd(sender, label);
                         }
                     }
                     default -> {

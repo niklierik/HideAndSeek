@@ -5,6 +5,7 @@ import me.fiveship.hideandseek.HNS;
 import me.fiveship.hideandseek.cmd.EditorMode;
 import me.fiveship.hideandseek.game.LocationData;
 import me.fiveship.hideandseek.game.Map;
+import me.fiveship.hideandseek.game.Phase;
 import me.fiveship.hideandseek.game.Team;
 import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
@@ -19,7 +20,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -29,6 +32,8 @@ import org.intellij.lang.annotations.RegExp;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 public class MainListener implements Listener {
@@ -75,18 +80,45 @@ public class MainListener implements Listener {
                     moved(victim, victim.getLocation().getY());
                 }
             }
+            event.setCancelled(true);
         }
     }
 
     public static void moved(Player player, double y) {
-        if (player.getGameMode().equals(GameMode.SPECTATOR)) {
-            var l = player.getLocation();
-            l.setY(y);
-            player.teleport(l);
+        var map = Map.playerIn(player);
+        if (map != null) {
+            var team = map.teams.get(player);
+            if (team == Team.HIDER) {
+                if (player.getGameMode().equals(GameMode.SPECTATOR)) {
+                    var l = player.getLocation();
+                    l.setY(y);
+                    player.teleport(l);
+                    player.setGameMode(GameMode.ADVENTURE);
+                    var block = HNS.blocks.getOrDefault(player, null);
+                    if (block != null) {
+                        HNS.blocksR.remove(block);
+                        block.setType(Material.AIR, true);
+                        HNS.blocks.remove(player);
+                    }
+                }
+                HNS.timer.put(player, 0.0);
+            }
         }
-        player.setGameMode(GameMode.ADVENTURE);
-        HNS.timer.put(player, 0.0);
     }
+
+    private static final List<EntityRegainHealthEvent.RegainReason> REGEN_REASONS = List.of(EntityRegainHealthEvent.RegainReason.REGEN, EntityRegainHealthEvent.RegainReason.SATIATED);
+
+    @EventHandler
+    public void onRegen(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            Map map = Map.playerIn(player);
+            if (map != null && REGEN_REASONS.contains(event.getRegainReason())) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    private static final List<EntityDamageEvent.DamageCause> CAUSES_TO_IGNORE = List.of(EntityDamageEvent.DamageCause.FALL, EntityDamageEvent.DamageCause.FIRE, EntityDamageEvent.DamageCause.FIRE_TICK, EntityDamageEvent.DamageCause.LAVA, EntityDamageEvent.DamageCause.SUFFOCATION, EntityDamageEvent.DamageCause.STARVATION);
 
     @EventHandler
     public void onHit(EntityDamageEvent event) {
@@ -94,9 +126,35 @@ public class MainListener implements Listener {
         if (victim instanceof Player player) {
             Map map = Map.playerIn(player);
             if (map != null) {
-                var team = map.teams.get(player);
-                if (team == Team.HIDER) {
-                    map.announce(new CStr("&6" + player.getName() + " &c(BÚJÓ) &7kiesett.").toString());
+                if (map.phase == Phase.HIDING || map.phase == Phase.SEEKING) {
+                    var team = map.teams.get(player);
+                    if (team == Team.HIDER && !CAUSES_TO_IGNORE.contains(event.getCause())) {
+                        var rng = new Random();
+                        if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK || event.getCause() == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK) {
+                            if (event instanceof EntityDamageByEntityEvent event2) {
+                                if (event2.getDamager() instanceof Player damager) {
+                                    if (map.teams.getOrDefault(damager, null).equals(Team.SEEKER)) {
+                                        event.setDamage(20 * rng.nextDouble());
+                                    } else {
+                                        event.setDamage(0);
+                                    }
+                                }
+                            }
+                        }
+                        /*
+                        map.announce(new CStr("&6" + player.getName() + " &c(BÚJÓ) &7kiesett.").toString());
+                        if (map.override.deadCanSeek) {
+                            map.teams.put(player, Team.SEEKER);
+                            map.desiredSpawn.put(player, map.seekerSpawns.get(map.rng.nextInt(map.seekerSpawns.size())).location);
+                            player.teleport(map.desiredSpawn.get(player));
+                        } else {
+                            map.teams.put(player, Team.SPECTATOR);
+                            player.setGameMode(GameMode.SPECTATOR);
+                        }
+                         */
+                    }
+                } else {
+                    event.setCancelled(true);
                 }
             }
         }
@@ -105,17 +163,27 @@ public class MainListener implements Listener {
     @EventHandler
     public void onKill(PlayerDeathEvent event) {
         var player = event.getPlayer();
-        Map m = Map.playerIn(player);
-        if (m != null) {
-            var team = m.teams.get(player);
+        Map map = Map.playerIn(player);
+        if (map != null) {
+            player.spigot().respawn();
+            var team = map.teams.get(player);
             if (team == Team.SEEKER) {
-                player.spigot().respawn();
                 Bukkit.getScheduler().scheduleSyncDelayedTask(HNS.plugin, () -> {
-                    player.teleport(m.desiredSpawn.get(player));
+                    player.teleport(map.desiredSpawn.get(player));
                     player.sendMessage("bocsi c:");
                 }, 20L);
-                player.teleport(m.desiredSpawn.get(player));
-                m.announce(new CStr("&6" + player.getName() + "&c(KERESŐ) &7ki lett ütve.").str());
+                player.teleport(map.desiredSpawn.get(player));
+                map.announce(new CStr("&6" + player.getName() + "&c(KERESŐ) &7ki lett ütve.").str());
+            } else if (team == Team.HIDER) {
+                map.announce(new CStr("&6" + player.getName() + " &c(BÚJÓ) &7kiesett.").toString());
+                if (map.override.deadCanSeek) {
+                    map.teams.put(player, Team.SEEKER);
+                    map.desiredSpawn.put(player, map.seekerSpawns.get(map.rng.nextInt(map.seekerSpawns.size())).location);
+                    player.teleport(map.desiredSpawn.get(player));
+                } else {
+                    map.teams.put(player, Team.SPECTATOR);
+                    player.setGameMode(GameMode.SPECTATOR);
+                }
             }
         }
     }
@@ -124,8 +192,8 @@ public class MainListener implements Listener {
     public void onChat(AsyncChatEvent event) {
         var player = event.getPlayer();
         String msg = PlainTextComponentSerializer.plainText().serialize(event.message());
-        EditorMode mode = HNS.editorContext.getOrDefault(player, new EditorMode());
-        if (HNS.editorContext.containsKey(player) && player.isOp() && (!mode.inChat || msg.startsWith("#"))) {
+        EditorMode mode = HNS.editorContext.getOrDefault(player, null);
+        if (mode != null && player.isOp() && (!mode.inChat || msg.startsWith("#"))) {
             if (msg.startsWith("#")) {
                 msg = msg.substring(1);
             }
@@ -247,6 +315,12 @@ public class MainListener implements Listener {
                 }
             } else if (msg.equalsIgnoreCase("exit")) {
                 HNS.editorContext.remove(player);
+                HNS.editorContext.put(player, null);
+                if (mode.map != null) {
+                    mode.map.save();
+                }
+                mode = null;
+                player.sendMessage("You exited from the editor.");
             } else if (msg.equalsIgnoreCase("enable")) {
                 var s = mode.map.validate();
                 if (s == null) {
@@ -261,11 +335,13 @@ public class MainListener implements Listener {
             } else {
                 player.sendMessage(Localization.invalidEditorCmd);
             }
-            if (mode.map != null) {
+            if (mode != null && mode.map != null) {
                 mode.map.save();
             }
         }
-        HNS.editorContext.put(player, mode);
+        if (mode != null) {
+            HNS.editorContext.put(player, mode);
+        }
     }
 
     private String args(String l, Object... args) {

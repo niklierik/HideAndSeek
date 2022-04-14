@@ -8,3 +8,6 @@ commands:
   hns:
     description: Main command for HNS
     aliases: [ blockhunt,hideandseek,hidenseek,bh ]
+  rotate:
+    description: Shortcut
+    aliases: [ rot,up,down,facing,bottom,top,blocks,block,spawn,spawns,seek ]

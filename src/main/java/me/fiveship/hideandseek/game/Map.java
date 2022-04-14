@@ -9,7 +9,9 @@ import me.fiveship.hideandseek.events.MainListener;
 import me.fiveship.hideandseek.localization.CStr;
 import me.fiveship.hideandseek.localization.Localization;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 public class Map {
 
@@ -51,11 +54,13 @@ public class Map {
     public HashMap<Player, Team> teams = new HashMap<>();
     @JsonIgnore
     public HashMap<Player, Location> desiredSpawn = new HashMap<>();
+    @JsonIgnore
+    public Set<Player> wantToSeek = new HashSet<>();
 
     @JsonIgnore
     private double timer;
     @JsonIgnore
-    private final Random rng = new Random();
+    public final Random rng = new Random();
 
     @JsonCreator
     public Map(@JsonProperty("ID") String id) {
@@ -64,6 +69,13 @@ public class Map {
 
     public void init() {
         override.keepNotNull(HNS.cfg.global);
+        var list = new ArrayList<Material>();
+        for (var b : blockTypes) {
+            if (b.isBlock()) {
+                list.add(b);
+            }
+        }
+        blockTypes = list;
     }
 
     public void onTick(double delta) {
@@ -108,6 +120,7 @@ public class Map {
             timer += delta;
             if (timer >= override.seekTime) {
                 toEndPhase();
+                announce("Bújók nyertek.");
             }
         }
         if (phase == Phase.ENDING) {
@@ -118,10 +131,13 @@ public class Map {
             }
         }
         if (phase == Phase.SEEKING || phase == Phase.HIDING) {
+            int hiders = 0;
             for (var entry : teams.entrySet()) {
+                if (entry.getValue() == Team.HIDER) {
+                    hiders++;
+                }
                 var player = entry.getKey();
                 var team = entry.getValue();
-                player.setSaturation(10.0f);
                 if (team == Team.HIDER) {
                     double d = HNS.timer.getOrDefault(player, 0.0);
                     d += delta;
@@ -141,33 +157,62 @@ public class Map {
                     HNS.timer.put(player, d);
                 }
             }
+            if (hiders == 0) {
+                toEndPhase();
+                announce("Keresők nyertek.");
+            }
         }
         int remain = (int) (startTime - timer);
-        for (var player : players) {
+        for (var entry : teams.entrySet()) {
+            var player = entry.getKey();
+            player.setSaturation(10.0f);
             player.setLevel(remain);
             player.setExp(0);
+            if (teams.get(player) == Team.HIDER) {
+                float f = (float) (HNS.timer.getOrDefault(player, 0.0) / override.turningToBlockTime);
+                player.setExp(Math.min(1f, f));
+                var mat = materials.get(player);
+                if (mat != null) {
+                    ItemStack stack = new ItemStack(mat);
+                    player.sendActionBar(Component.translatable(stack).color(TextColor.color(0f, 1f, 0f)).asComponent().append(Component.text(ChatColor.AQUA + " a blokkod.")));
+                }
+            }
         }
     }
 
     public void start() {
+        announce("Elindult :o");
         phase = Phase.HIDING;
         timer = 0;
-        var l = new ArrayList<>(players);
+        if (wantToSeek.isEmpty()) {
+            wantToSeek.addAll(players);
+        }
+        var l = new ArrayList<>(wantToSeek);
         Collections.shuffle(l);
         int noSeekers = l.size() / override.seekersByPlayer + 1;
         for (int i = 0; i < noSeekers; i++) {
             var p = l.get(i);
             teams.put(p, Team.SEEKER);
             desiredSpawn.put(p, seekerSpawns.get(rng.nextInt(seekerSpawns.size())).location);
+            announce(p.getName() + " kereső lett.");
         }
         for (var entry : teams.entrySet()) {
+            var p = entry.getKey();
             if (entry.getValue() == Team.HIDER) {
-                entry.getKey().teleport(desiredSpawn.get(entry.getKey()));
+                p.teleport(desiredSpawn.get(entry.getKey()));
             }
+            p.setHealth(20);
+            for (var e : p.getActivePotionEffects()) {
+                p.removePotionEffect(e.getType());
+            }
+            p.setFireTicks(0);
+
         }
+        wantToSeek.clear();
     }
 
     private void toSeekPhase() {
+        announce("Elindultak a keresők!");
         phase = Phase.SEEKING;
         timer = 0;
         for (var entry : teams.entrySet()) {
@@ -178,6 +223,7 @@ public class Map {
     }
 
     private void toEndPhase() {
+        announce("Vége van!");
         phase = Phase.ENDING;
         timer = 0;
         for (var p : players) {
@@ -201,9 +247,12 @@ public class Map {
     }
 
     public static void kickPlayer(Player p, String msg) {
+        HNS.inGameTeam.removeEntity(p);
         Map m = Map.playerIn(p);
         if (m != null) {
-            m.announce(msg);
+            if (msg != null) {
+                m.announce(msg);
+            }
             m._kickPlayer(p);
         }
     }
@@ -217,12 +266,6 @@ public class Map {
         }
     }
 
-    public void announceOnActionBar(String text) {
-        for (var p : players) {
-            p.sendActionBar(Component.text(text));
-        }
-    }
-
     public void _kickPlayer(Player p) {
         players.remove(p);
         teams.remove(p);
@@ -231,7 +274,7 @@ public class Map {
 
     public void kickPlayers() {
         for (var player : new HashSet<>(players)) {
-            HNS.players.remove(player.getUniqueId());
+            kickPlayer(player, null);
         }
         players.clear();
         teams.clear();
@@ -273,10 +316,14 @@ public class Map {
             player.sendMessage(new CStr("&cMap is not enabled.").toString());
             return;
         }
+        player.getInventory().clear();
         players.add(player);
         teams.put(player, Team.HIDER);
         materials.put(player, new ArrayList<>(blockTypes).get(rng.nextInt(blockTypes.size())));
         desiredSpawn.put(player, hiderSpawns.get(rng.nextInt(hiderSpawns.size())).location);
+        player.teleport(HNS.cfg.lobby);
+        HNS.inGameTeam.addEntity(player);
+        announce(player.getName() + " csatlakozott.");
     }
 
     public void blockChooser(Player player) {
@@ -286,6 +333,7 @@ public class Map {
             inv.setItem(i++, new ItemStack(block));
         }
         InvEvents.invs.put(player, "blocks");
+        player.openInventory(inv);
     }
 
     public Material blockOf(int index) {
@@ -316,8 +364,13 @@ public class Map {
         int i = 0;
         var list = team == Team.HIDER ? hiderSpawns : seekerSpawns;
         for (var spawn : list) {
-            inv.setItem(i++, new ItemStack(spawn.icon));
+            var stack = new ItemStack(spawn.icon);
+            var meta = stack.getItemMeta();
+            meta.displayName(Component.text(spawn.name));
+            stack.setItemMeta(meta);
+            inv.setItem(i++, stack);
         }
         InvEvents.invs.put(player, "spawns");
+        player.openInventory(inv);
     }
 }

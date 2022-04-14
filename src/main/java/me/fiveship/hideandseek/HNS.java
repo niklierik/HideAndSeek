@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import me.fiveship.hideandseek.cfg.Config;
 import me.fiveship.hideandseek.cmd.EditorMode;
 import me.fiveship.hideandseek.cmd.MainCmd;
+import me.fiveship.hideandseek.cmd.Shortcut;
 import me.fiveship.hideandseek.events.InvEvents;
 import me.fiveship.hideandseek.events.MainListener;
 import me.fiveship.hideandseek.game.Map;
@@ -146,6 +147,7 @@ public final class HNS extends JavaPlugin {
 
     private void registerCommands() {
         Objects.requireNonNull(getCommand("hns")).setExecutor(new MainCmd());
+        Objects.requireNonNull(getCommand("rotate")).setExecutor(new Shortcut());
     }
 
     private void registerListeners() {
